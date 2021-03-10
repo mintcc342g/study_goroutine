@@ -1,11 +1,10 @@
 package controller
 
 import (
-	"net/http"
 	"study_goroutine/conf"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 // InitHandler ...
@@ -14,10 +13,12 @@ func InitHandler(studyGoroutine *conf.ViperConfig, e *echo.Echo) error {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// Route => handler
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!\n")
-	})
+	// Default Group
+	api := e.Group("/api")
+	ver := api.Group("/v1")
+	sys := ver.Group("/mail")
+
+	newHTTPHandler(studyGoroutine, sys)
 
 	return nil
 }

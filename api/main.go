@@ -11,8 +11,8 @@ import (
 	ctrl "study_goroutine/api/controller"
 	conf "study_goroutine/conf"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 const (
