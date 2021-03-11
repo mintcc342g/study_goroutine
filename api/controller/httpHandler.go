@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"study_goroutine/conf"
 	"study_goroutine/model"
@@ -21,29 +23,36 @@ func newHTTPHandler(studyGoroutine *conf.ViperConfig, eg *echo.Group, emailServi
 		emailService:   emailService,
 	}
 	eg.POST("/send", handler.SendEmail)
-	eg.GET("/:emailID", handler.Email)
+	eg.GET("/:id", handler.Email)
 }
 
 // SendEmail ...
 func (handler *HTTPHandler) SendEmail(c echo.Context) (err error) {
 
+	ctx := c.Request().Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	req := &model.RequestBody{}
 	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		log.Println("HTTPHandler SendEmail Bind Error")
+		return response(c, http.StatusBadRequest, "invalid request")
 	}
 	if !req.Validate() {
-		return c.JSON(http.StatusBadRequest, "invalid request")
+		return response(c, http.StatusBadRequest, "invalid request")
 	}
 
-	email, err := handler.emailService.NewEmail(req)
+	email, err := handler.emailService.NewEmail(ctx, req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		log.Println("HTTPHandler NewEmail Error")
+		return response(c, http.StatusNotAcceptable, "err", err) // TODO: status code 수정
 	}
 
-	return c.JSON(http.StatusOK, email)
+	return response(c, http.StatusAccepted, "Send Email OK", email)
 }
 
 // Email ...
 func (handler *HTTPHandler) Email(c echo.Context) (err error) {
-	return c.String(http.StatusOK, "Hello, World!") // Test -> http://localhost:1323/api/v1/mail/1
+	return response(c, http.StatusOK, "Get Email OK", "Hello, World!") // Test -> http://localhost:1323/api/v1/mail/1
 }

@@ -33,9 +33,9 @@ const (
 func main() {
 	StudyGoroutine := conf.StudyGoroutine
 	e := echoInit(StudyGoroutine)
-	sigInit(e)
+	signal := sigInit(e)
 
-	if err := ctrl.InitHandler(StudyGoroutine, e); err != nil {
+	if err := ctrl.InitHandler(StudyGoroutine, e, signal); err != nil {
 		e.Logger.Error("InitHandler Error")
 		os.Exit(1) // 프로그램을 지정된 status로 즉시 종료
 	}
@@ -61,7 +61,7 @@ func echoInit(studyGoroutine *conf.ViperConfig) (e *echo.Echo) {
 	return e
 }
 
-func sigInit(e *echo.Echo) { // graceful shutdown을 위한 메소드
+func sigInit(e *echo.Echo) chan os.Signal { // graceful shutdown을 위한 메소드
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit,
 		syscall.SIGINT,
@@ -80,6 +80,7 @@ func sigInit(e *echo.Echo) { // graceful shutdown을 위한 메소드
 		signal.Stop(quit)
 		close(quit)
 	}()
+	return quit
 }
 
 func startServer(studyGoroutine *conf.ViperConfig, e *echo.Echo) {
