@@ -2,6 +2,7 @@ package controller
 
 import (
 	"study_goroutine/conf"
+	"study_goroutine/service"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,9 +17,13 @@ func InitHandler(studyGoroutine *conf.ViperConfig, e *echo.Echo) error {
 	// Default Group
 	api := e.Group("/api")
 	ver := api.Group("/v1")
-	sys := ver.Group("/mail")
+	sys := ver.Group("/email")
 
-	newHTTPHandler(studyGoroutine, sys)
+	// Services
+	emailService := service.NewEmailService()
+
+	// Handlers
+	newHTTPHandler(studyGoroutine, sys, emailService)
 
 	return nil
 }
