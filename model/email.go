@@ -2,8 +2,10 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -56,6 +58,14 @@ func (e *Email) NewTask() (*BackgroundTask, error) {
 		TaskData: byt,
 		TaskType: TaskEventType(TaskEventTypeEmailSend),
 	}, nil
+}
+
+// NewError ...
+func (e *Email) NewError() error {
+	if strings.Contains(e.Title, "err") {
+		return errors.Errorf("You will be stuck in an INFINITE LOOP, haha!")
+	}
+	return nil
 }
 
 // Emails ...
