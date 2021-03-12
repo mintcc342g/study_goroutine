@@ -9,26 +9,36 @@ import (
 	"time"
 
 	"study_goroutine/model"
+	"study_goroutine/repository"
 
 	"github.com/pkg/errors"
+	"github.com/streadway/amqp"
 )
 
 type backgroundUsecase struct {
-	taskChannel chan *model.BackgroundTask
+	mqRepo    repository.MQRepository
+	mqChannel <-chan amqp.Delivery
 }
 
 // NewBackgroundService ...
-func NewBackgroundService(cancel <-chan os.Signal) BackgroundService {
+func NewBackgroundService(mqRepo repository.MQRepository, cancel <-chan os.Signal) BackgroundService {
 	bg := &backgroundUsecase{
-		taskChannel: make(chan *model.BackgroundTask, 100),
+		mqRepo:    mqRepo,
+		mqChannel: mqRepo.DeliveryMessage(),
 	}
 	go bg.runBackgroundProcess(cancel)
 	return bg
 }
 
-func (bg *backgroundUsecase) SendBackgroundTask(ctx context.Context, task *model.BackgroundTask) {
-	bg.taskChannel <- task
-	return
+func (bg *backgroundUsecase) SendBackgroundTask(ctx context.Context, task *model.BackgroundTask) error {
+	rawTask, err := json.Marshal(task)
+	if err != nil {
+		log.Println("backgroundService SendBackgroundTask Marshal Error", err)
+		return err
+	}
+	bg.mqRepo.PublishMessage(rawTask)
+
+	return nil
 }
 
 func (bg *backgroundUsecase) runBackgroundProcess(cancel <-chan os.Signal) {
@@ -40,22 +50,40 @@ func (bg *backgroundUsecase) runBackgroundProcess(cancel <-chan os.Signal) {
 		}
 	}()
 
-	for { // exectueTask 에서 실패가 났을 경우, 다시 시도하기 위한 무한 루프
-		select {
-		case <-cancel:
-			log.Println("shutdown background process...")
-			return
-		case task := <-bg.taskChannel:
-			if err := bg.executeTask(ctx, task); err != nil { // TODO: 에러 종류에 따라 처리 방식 나누기
-				log.Println(err)
-				bg.taskChannel <- task
-			}
+	select {
+	case <-cancel:
+		log.Println("shutdown background process...")
+		return
+	default:
+		if err := bg.consumeMessage(ctx); err != nil {
+			log.Println("backgroundService runBackgroundProcess consumeMessage Error", err)
 		}
 	}
 }
 
-func (bg *backgroundUsecase) executeTask(ctx context.Context, task *model.BackgroundTask) error {
+func (bg *backgroundUsecase) consumeMessage(ctx context.Context) error {
+	for d := range bg.mqChannel {
+		var task *model.BackgroundTask
+		if err := json.Unmarshal(d.Body, &task); err != nil {
+			d.Nack(false, true)
+			log.Println("backgroundService consumeMessage Unmarshal Error", err)
+			return err
+		}
 
+		if err := bg.executeTask(ctx, task); err != nil {
+			d.Nack(false, true) // 에러 발생 시, 메세지가 소비되지 않고 다시 mq로 들어감. 그래서 for 가 계속 돌게 됨.
+			log.Println("backgroundService consumeMessage executeTask Error", err)
+			continue
+		}
+
+		d.Ack(false)
+		log.Println("backgroundService consumeMessage Success...")
+	}
+
+	return nil
+}
+
+func (bg *backgroundUsecase) executeTask(ctx context.Context, task *model.BackgroundTask) error {
 	switch task.TaskType {
 	case model.TaskEventType(model.TaskEventTypeEmailSend):
 		if err := bg.sendEmail(ctx, task.TaskData); err != nil {
@@ -72,7 +100,6 @@ func (bg *backgroundUsecase) executeTask(ctx context.Context, task *model.Backgr
 }
 
 func (bg *backgroundUsecase) sendEmail(ctx context.Context, rawEmail []byte) error {
-
 	// 비동기 처리 확인을 위한 sleep과 print
 	fmt.Println("backgroundService Ready for sending the email...") // log로 바꿀 경우, response가 먼저 나가고 log가 나중에 뜨기 시작함.
 	time.Sleep(time.Second * 2)
@@ -86,7 +113,7 @@ func (bg *backgroundUsecase) sendEmail(ctx context.Context, rawEmail []byte) err
 
 	log.Println("Got Email", *email)
 
-	if err := email.NewError(); err != nil { // runBackgroundProcess() 에서 무한 루프를 확인하기 위해 에러 발생시킴.
+	if err := email.NewError(); err != nil { // runBackgroundProcess() 에서 d.Nack() 후 continue를 확인하기 위해 에러 발생시킴.
 		return err
 	}
 

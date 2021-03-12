@@ -7,14 +7,14 @@ import (
 
 // EmailService ...
 type EmailService interface {
-	NewEmail(ctx context.Context, req *model.RequestBody) (email *model.Email, err error)
-	UserEmail(ctx context.Context, userID uint64, emailID string) (email *model.Email, err error)
-	UserEmails(ctx context.Context, userID uint64) (emails model.Emails, err error)
-	UpdateEmail(ctx context.Context, req *model.RequestBody) (email *model.Email, err error)
-	DeleteEmail(ctx context.Context, req *model.RequestBody) (err error)
+	NewEmail(ctx context.Context, req *model.RequestBody) (*model.Email, error)
+	UserEmail(ctx context.Context, userID uint64, emailID string) (*model.Email, error)
+	UserEmails(ctx context.Context, userID uint64) (model.Emails, error)
+	UpdateEmail(ctx context.Context, req *model.RequestBody) (*model.Email, error)
+	DeleteEmail(ctx context.Context, req *model.RequestBody) error
 }
 
 // BackgroundService ...
 type BackgroundService interface {
-	SendBackgroundTask(ctx context.Context, task *model.BackgroundTask)
+	SendBackgroundTask(ctx context.Context, task *model.BackgroundTask) error
 }

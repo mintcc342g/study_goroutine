@@ -3,10 +3,12 @@ package controller
 import (
 	"os"
 	"study_goroutine/conf"
+	"study_goroutine/repository"
 	"study_goroutine/service"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/streadway/amqp"
 )
 
 type (
@@ -19,7 +21,7 @@ type (
 )
 
 // InitHandler ...
-func InitHandler(studyGoroutine *conf.ViperConfig, e *echo.Echo, signal <-chan os.Signal) error {
+func InitHandler(studyGoroutine *conf.ViperConfig, e *echo.Echo, mqCh *amqp.Channel, signal <-chan os.Signal) error {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -29,8 +31,11 @@ func InitHandler(studyGoroutine *conf.ViperConfig, e *echo.Echo, signal <-chan o
 	ver := api.Group("/v1")
 	sys := ver.Group("/email")
 
+	// Repositories
+	mqRepository := repository.NewMQRepository(mqCh, studyGoroutine.GetString("mq_name"))
+
 	// Services
-	backgroundService := service.NewBackgroundService(signal)
+	backgroundService := service.NewBackgroundService(mqRepository, signal)
 	emailService := service.NewEmailService(backgroundService)
 
 	// Handlers

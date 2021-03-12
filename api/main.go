@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/streadway/amqp"
 )
 
 const (
@@ -34,8 +36,11 @@ func main() {
 	StudyGoroutine := conf.StudyGoroutine
 	e := echoInit(StudyGoroutine)
 	signal := sigInit(e)
+	mqConn, mqCh := mqInit(StudyGoroutine)
+	defer mqConn.Close()
+	defer mqCh.Close()
 
-	if err := ctrl.InitHandler(StudyGoroutine, e, signal); err != nil {
+	if err := ctrl.InitHandler(StudyGoroutine, e, mqCh, signal); err != nil {
 		e.Logger.Error("InitHandler Error")
 		os.Exit(1) // 프로그램을 지정된 status로 즉시 종료
 	}
@@ -81,6 +86,34 @@ func sigInit(e *echo.Echo) chan os.Signal { // graceful shutdown을 위한 메�
 		close(quit)
 	}()
 	return quit
+}
+
+func mqInit(studyGoroutine *conf.ViperConfig) (*amqp.Connection, *amqp.Channel) {
+	conn, err := amqp.Dial(studyGoroutine.GetString("mq_host"))
+	if err != nil {
+		log.Println("Failed to connect to RabbitMQ", err)
+	}
+
+	ch, err := conn.Channel()
+	if err != nil {
+		log.Println("Failed to open a channel", err)
+	}
+
+	q, err := ch.QueueDeclare(
+		studyGoroutine.GetString("mq_name"), // name
+		false,                               // durable
+		false,                               // delete when unused
+		false,                               // exclusive
+		false,                               // no-wait
+		nil,                                 // arguments
+	)
+	if err != nil {
+		log.Println("Failed to declare a queue", err)
+	}
+
+	log.Println("MQ Init Success...", "MQ Name", q.Name)
+
+	return conn, ch
 }
 
 func startServer(studyGoroutine *conf.ViperConfig, e *echo.Echo) {

@@ -11,6 +11,9 @@
 
 # OR run server as debug mode using vscode (click the button of 'Launch')
 
+# install docker if you cloned v1.0.0
+# then, run docker (you can change the image which you want)
+$ docker run -d --hostname studymq --name studymq -p 5672:5672 --restart=unless-stopped -e RABBITMQ_DEFAULT_USER=mquser -e RABBITMQ_DEFAULT_PASS=mqpwd rabbitmq:3
 
 ## How to Test
 
