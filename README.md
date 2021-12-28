@@ -2,6 +2,7 @@
 
 * Go: 1.14
 
+<br/>
 
 ## Build
 
@@ -11,7 +12,6 @@ $ make build
 
 ```
 
-<br/>
 <br/>
 
 ## Run Server
@@ -24,7 +24,6 @@ $ docker run -d --hostname emailmq --name emailmq -p 5672:5672 --restart=unless-
 $ go run ./api/main.go
 ```
 
-<br/>
 <br/>
 
 ## How To Test
