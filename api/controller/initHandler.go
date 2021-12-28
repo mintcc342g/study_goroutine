@@ -2,9 +2,9 @@ package controller
 
 import (
 	"os"
-	"study_goroutine/conf"
-	"study_goroutine/repository"
-	"study_goroutine/service"
+	"study-goroutine/conf"
+	"study-goroutine/repository"
+	"study-goroutine/service"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

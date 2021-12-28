@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	ctrl "study_goroutine/api/controller"
-	conf "study_goroutine/conf"
+	ctrl "study-goroutine/api/controller"
+	conf "study-goroutine/conf"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -33,19 +33,19 @@ const (
 // }
 
 func main() {
-	StudyGoroutine := conf.StudyGoroutine
-	e := echoInit(StudyGoroutine)
+	studyGoroutine := conf.StudyGoroutine
+	e := echoInit(studyGoroutine)
 	signal := sigInit(e)
-	mqConn, mqCh := mqInit(StudyGoroutine)
+	mqConn, mqCh := mqInit(studyGoroutine)
 	defer mqConn.Close()
 	defer mqCh.Close()
 
-	if err := ctrl.InitHandler(StudyGoroutine, e, mqCh, signal); err != nil {
+	if err := ctrl.InitHandler(studyGoroutine, e, mqCh, signal); err != nil {
 		e.Logger.Error("InitHandler Error")
 		os.Exit(1) // 프로그램을 지정된 status로 즉시 종료
 	}
 
-	startServer(StudyGoroutine, e)
+	startServer(studyGoroutine, e)
 }
 
 func echoInit(studyGoroutine *conf.ViperConfig) (e *echo.Echo) {

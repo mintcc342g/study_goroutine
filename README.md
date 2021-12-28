@@ -1,23 +1,36 @@
-# study_goroutine
+# Study Goroutine
 
 * Go: 1.14
 
+
+## Build
+
+```bash
+# run command on project root directory
+$ make build
+
 ```
-# build
-(~/project_root) $ make build
 
-# run server use command line
-(~/project_root) $ go run ./api/main.go
+<br/>
+<br/>
 
-# OR run server as debug mode using vscode (click the button of 'Launch')
+## Run Server
 
-# install docker if you cloned v1.0.0
-# then, run docker (you can change the image which you want)
-$ docker run -d --hostname studymq --name studymq -p 5672:5672 --restart=unless-stopped -e RABBITMQ_DEFAULT_USER=mquser -e RABBITMQ_DEFAULT_PASS=mqpwd rabbitmq:3
+```bash
+# run RabbitMQ using Docker
+$ docker run -d --hostname emailmq --name emailmq -p 5672:5672 --restart=unless-stopped -e RABBITMQ_DEFAULT_USER=mquser -e RABBITMQ_DEFAULT_PASS=mqpwd rabbitmq:3
 
-## How to Test
+# run server (You can use debug mode on vscode as clicking the button of 'Launch')
+$ go run ./api/main.go
+```
 
-# Normal response test
+<br/>
+<br/>
+
+## How To Test
+
+```bash
+# Normal Case
 $curl --location --request POST '127.0.0.1:1323/api/v1/email/send' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -27,7 +40,7 @@ $curl --location --request POST '127.0.0.1:1323/api/v1/email/send' \
     "content": "normal case"
 }'
 
-# Infinite Loop test
+# Error Case (Infinite Loop)
 $curl --location --request POST '127.0.0.1:1323/api/v1/email/send' \
 --header 'Content-Type: application/json' \
 --data-raw '{

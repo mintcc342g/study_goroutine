@@ -1,4 +1,4 @@
-PACKAGE = study_goroutine
+PACKAGE = study-goroutine
 BUILDPATH ?= $(CURDIR)
 BASE	= $(BUILDPATH)
 BIN		= $(BASE)/bin

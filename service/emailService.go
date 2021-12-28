@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"log"
-	"study_goroutine/model"
+	"study-goroutine/model"
 )
 
 type emailUsecase struct {

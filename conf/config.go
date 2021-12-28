@@ -16,7 +16,7 @@ func init() {
 	StudyGoroutine = readConfig(map[string]interface{}{
 		"debug_route": false,
 		"port":        1323,
-		"mq_name":     "studymq",
+		"mq_name":     "emailmq",
 		"mq_host":     "amqp://mquser:mqpwd@0.0.0.0:5672/",
 	})
 }

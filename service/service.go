@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"study_goroutine/model"
+	"study-goroutine/model"
 )
 
 // EmailService ...

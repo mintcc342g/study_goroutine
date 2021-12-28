@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"study_goroutine/model"
-	"study_goroutine/repository"
+	"study-goroutine/model"
+	"study-goroutine/repository"
 
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"

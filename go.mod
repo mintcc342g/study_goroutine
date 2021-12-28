@@ -1,4 +1,4 @@
-module study_goroutine
+module study-goroutine
 
 go 1.14
 

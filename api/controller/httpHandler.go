@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"study_goroutine/conf"
-	"study_goroutine/model"
-	"study_goroutine/service"
+	"study-goroutine/conf"
+	"study-goroutine/model"
+	"study-goroutine/service"
 
 	"github.com/labstack/echo/v4"
 )
